@@ -317,7 +317,8 @@ message LayerParameter {
   // engine parameter for selecting the implementation.
   // The default for the engine is set by the ENGINE switch at compile-time.
   optional AccuracyParameter accuracy_param = 102;
-  optional ArgMaxParameter argmax_param = 103;
+  optional ArgMaxParameter argmax_param = 103; 
+  optional BoxUpsampleParameter box_upsample_param = 137;
   optional ConcatParameter concat_param = 104;
   optional ContrastiveLossParameter contrastive_loss_param = 105;
   optional ConvolutionParameter convolution_param = 106;
@@ -333,16 +334,21 @@ message LayerParameter {
   optional ImageDataParameter image_data_param = 115;
   optional InfogainLossParameter infogain_loss_param = 116;
   optional InnerProductParameter inner_product_param = 117;
+  optional LocallyConnectedLayerWithLossParameter local_layer_param = 138;
   optional LogParameter log_param = 134;
   optional LRNParameter lrn_param = 118;
   optional MemoryDataParameter memory_data_param = 119;
   optional MVNParameter mvn_param = 120;
+  optional PickSliceParameter pick_slice_param = 143;
   optional PoolingParameter pooling_param = 121;
   optional PowerParameter power_param = 122;
   optional PReLUParameter prelu_param = 131;
   optional PythonParameter python_param = 130;
   optional ReductionParameter reduction_param = 136;
   optional ReLUParameter relu_param = 123;
+  optional RepMatParameter repmat_param = 140;
+  optional ROIPoolingParameter roi_pooling_param = 141;
+  optional ScaleParameter scale_param = 142;
   optional ReshapeParameter reshape_param = 133;
   optional SigmoidParameter sigmoid_param = 124;
   optional SoftmaxParameter softmax_param = 125;
@@ -350,8 +356,52 @@ message LayerParameter {
   optional SliceParameter slice_param = 126;
   optional TanHParameter tanh_param = 127;
   optional ThresholdParameter threshold_param = 128;
+  optional UpsampleParameter upsample_param = 144;
   optional WindowDataParameter window_data_param = 129;
 }
+
+message RepMatParameter {
+  optional uint32 rep_w = 1 [default = 1];
+  optional uint32 rep_h = 2 [default = 1];
+  optional uint32 rep_c = 3 [default = 1];
+  optional uint32 rep_n = 4 [default = 1];
+
+}
+//
+message PickSliceParameter {
+  optional uint32 channels = 1;
+}
+// Message that stores parameters used by ROIPoolingLayer
+message ROIPoolingParameter {
+  // Pad, kernel size, and stride are all given as a single value for equal
+  // dimensions in height and width or as Y, X pairs.
+  optional uint32 pooled_h = 1 [default = 0]; // The pooled output height
+  optional uint32 pooled_w = 2 [default = 0]; // The pooled output width
+}
+//Message that scales stuff
+message ScaleParameter {
+  optional float scale = 1;
+}
+//Message that stores locally connected with loss layer parameters
+message LocallyConnectedLayerWithLossParameter {
+  optional uint32 grid_size = 1;
+  optional float neg_loss_wt = 2;
+  optional float pos_loss_wt = 3;
+}
+
+//Message that stores upsample parameters
+message UpsampleParameter {
+  optional uint32 width = 1;
+  optional uint32 height = 2;
+}
+
+//Message that stores upsample parameters
+message BoxUpsampleParameter {
+  optional uint32 width = 1;
+  optional uint32 height = 2;
+  optional uint32 channels = 3;
+}
+
 
 // Message that stores parameters used to apply transformation
 // to the data layer's data
@@ -910,7 +960,6 @@ message SPPParameter {
   }
   optional Engine engine = 6 [default = DEFAULT];
 }
-
 // DEPRECATED: use LayerParameter.
 message V1LayerParameter {
   repeated string bottom = 2;

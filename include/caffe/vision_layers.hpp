@@ -519,6 +519,8 @@ class SPPLayer : public Layer<Dtype> {
   shared_ptr<ConcatLayer<Dtype> > concat_layer_;
 };
 
+
+
 }  // namespace caffe
 
 #endif  // CAFFE_VISION_LAYERS_HPP_

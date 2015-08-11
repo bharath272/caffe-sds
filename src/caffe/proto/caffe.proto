@@ -753,6 +753,7 @@ message PowerParameter {
 message PythonParameter {
   optional string module = 1;
   optional string layer = 2;
+  optional string param_str = 3 [default = ''];
 }
 
 // Message that stores parameters used by ReductionLayer

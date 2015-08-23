@@ -169,17 +169,17 @@ void BoxUpsampleLayer<Dtype>::Backward_cpu(
   
                   float ycenter = ((static_cast<float>(Y)+0.5)/H - box_ymin)*h/box_h -0.5;
                   int ymin = static_cast<int>(max(floor(ycenter-cell_h),0.0));
-                  int ymax = static_cast<int>(min(ceil(ycenter+cell_h),static_cast<double>(top_height)));
+                  int ymax = static_cast<int>(min(ceil(ycenter+cell_h),static_cast<double>(top_height-1)));
                 
                   float xcenter = ((static_cast<float>(X)+0.5)/W - box_xmin)*w/box_w -0.5;
                   int xmin = static_cast<int>(max(floor(xcenter-cell_w),0.0));
-                  int xmax = static_cast<int>(min(ceil(xcenter+cell_w), static_cast<double>(top_width)));
+                  int xmax = static_cast<int>(min(ceil(xcenter+cell_w), static_cast<double>(top_width-1)));
                   Dtype val=0;
-                  if(ymax<0 || ymin>=height) {continue;}
-                  if(xmax<0 || xmin>=width) {continue;}
+                  if(ymax<0 || ymin>=top_height) {continue;}
+                  if(xmax<0 || xmin>=top_width) {continue;}
                   for(int y=ymin; y<ymax; y++)
                   {
-                    if(y<0 || y>=height){
+                    if(y<0 || y>=top_height){
                       continue;
                     }
                     float wy = 1.0 - fabs(static_cast<float>(y)-ycenter)/cell_h;
@@ -189,7 +189,7 @@ void BoxUpsampleLayer<Dtype>::Backward_cpu(
                     wy = ((Y==height-1) && y>ycenter)?1.0:wy;
                     for(int x=xmin; x<xmax; x++)
                     {
-                       if(x<0 || x>=width){
+                       if(x<0 || x>=top_width){
                          continue;
                        }
                        float wx = 1.0 - fabs(static_cast<float>(x)-xcenter)/cell_w;

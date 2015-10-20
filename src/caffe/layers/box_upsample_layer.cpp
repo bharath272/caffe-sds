@@ -24,7 +24,7 @@ void BoxUpsampleLayer<Dtype>::Reshape(
     this->top_width=this->layer_param_.box_upsample_param().width();
     this->top_height=this->layer_param_.box_upsample_param().height();
     this->numchannels = this->layer_param_.box_upsample_param().channels();
-    //bottom[1] is [level channel_grp_id xmin ymin xmax ymax] for each box 
+    //bottom[1] is [level channel_grp_id xmin ymin xmax ymax] for each box
 
 
     top[0]->Reshape(bottom[1]->num(), this->numchannels, this->top_height, this->top_width);
@@ -44,7 +44,7 @@ void BoxUpsampleLayer<Dtype>::Forward_cpu(
 
     const Dtype* boxes = bottom[1]->cpu_data();
     const int numboxes = bottom[1]->num();
-    
+
     const int total = top_width*top_height;
     const float H = static_cast<float>(height);
     const float W = static_cast<float>(width);
@@ -57,18 +57,18 @@ void BoxUpsampleLayer<Dtype>::Forward_cpu(
         const Dtype* box_curr = boxes + 6*n;
         int level = static_cast<int>(box_curr[0]);
         int channel_group = static_cast<int>(box_curr[1]);
-        //we adapt the convention that xmin and xmax are excluded from the box. 
+        //we adapt the convention that xmin and xmax are excluded from the box.
         Dtype box_xmin = box_curr[2];
         Dtype box_ymin = box_curr[3];
         Dtype box_xmax = box_curr[4];
         Dtype box_ymax = box_curr[5];
         Dtype box_w = box_xmax-box_xmin;
-        Dtype box_h = box_ymax-box_ymin; 
+        Dtype box_h = box_ymax-box_ymin;
         const Dtype* bottom_forthis = bottom_data+level*inchannels*bottomtotal + channel_group*numchannels*bottomtotal;
         for(int c=0; c<numchannels; c++)
         {
             const Dtype* bottom_curr=bottom_forthis + c*bottomtotal;
-            Dtype* top_curr=top_data+n*numchannels*total+c*total; 
+            Dtype* top_curr=top_data+n*numchannels*total+c*total;
             for(int y=0; y<top_height; y++)
             {
                 float Y =((static_cast<float>(y)+0.5)*box_h/h + box_ymin)*H - 0.5;
@@ -92,11 +92,11 @@ void BoxUpsampleLayer<Dtype>::Forward_cpu(
                    val += static_cast<Dtype>(wXl*wYh)*bottom_curr[static_cast<int>(Yh)*width + static_cast<int>(Xl)];
                    val += static_cast<Dtype>(wXh*wYl)*bottom_curr[static_cast<int>(Yl)*width + static_cast<int>(Xh)];
                    val += static_cast<Dtype>(wXh*wYh)*bottom_curr[static_cast<int>(Yh)*width + static_cast<int>(Xh)];
-                   
+
                    *top_curr=val;
-                   top_curr++;  
-                }    
-            }    
+                   top_curr++;
+                }
+            }
         }
     }
 
@@ -125,7 +125,7 @@ void BoxUpsampleLayer<Dtype>::Backward_cpu(
 
     const Dtype* boxes = bottom[1]->cpu_data();
     const int numboxes = bottom[1]->num();
- 
+
 
 
     const float H = static_cast<float>(height);
@@ -148,29 +148,29 @@ void BoxUpsampleLayer<Dtype>::Backward_cpu(
 
                   const Dtype* box_curr = boxes + 6*bid;
                   int level = static_cast<int>(box_curr[0]);
-                  
+
                   int channel_group = static_cast<int>(box_curr[1]);
                   if(level!=n || (c/numchannels)!=channel_group){
                     //this box either does not use this level or does not involve this channel
                     continue;
                   }
-                  //we adapt the convention that xmin and xmax are excluded from the box. 
+                  //we adapt the convention that xmin and xmax are excluded from the box.
                   Dtype box_xmin = box_curr[2];
                   Dtype box_ymin = box_curr[3];
                   Dtype box_xmax = box_curr[4];
                   Dtype box_ymax = box_curr[5];
                   Dtype box_w = box_xmax-box_xmin;
-                  Dtype box_h = box_ymax-box_ymin;      
+                  Dtype box_h = box_ymax-box_ymin;
                   const Dtype* top_curr=top_diff+bid*numchannels*total
-                                       +(c%numchannels)*total; 
-             
+                                       +(c%numchannels)*total;
+
                   float cell_w = w/(W*box_w);
                   float cell_h = h/(H*box_h);
-  
+
                   float ycenter = ((static_cast<float>(Y)+0.5)/H - box_ymin)*h/box_h -0.5;
                   int ymin = static_cast<int>(max(floor(ycenter-cell_h),0.0));
                   int ymax = static_cast<int>(min(ceil(ycenter+cell_h),static_cast<double>(top_height-1)));
-                
+
                   float xcenter = ((static_cast<float>(X)+0.5)/W - box_xmin)*w/box_w -0.5;
                   int xmin = static_cast<int>(max(floor(xcenter-cell_w),0.0));
                   int xmax = static_cast<int>(min(ceil(xcenter+cell_w), static_cast<double>(top_width-1)));
@@ -196,20 +196,25 @@ void BoxUpsampleLayer<Dtype>::Backward_cpu(
                        //special case boundary
                        wx = ((X==0) && x<xcenter)?1.0:wx;
                        wx = ((X==width-1) && x>xcenter)?1.0:wx;
-                       val += static_cast<Dtype>(wx*wy)*top_curr[y*top_width+x]; 
+                       val += static_cast<Dtype>(wx*wy)*top_curr[y*top_width+x];
                     }
                   }
                   *bottom_curr+= val;
                 }
-                
+
                 bottom_curr++;
               }
-            }    
+            }
         }
     }
 
 
 }
+#ifdef CPU_ONLY
+STUB_GPU(BoxUpsampleLayer);
+#endif
+
+
 INSTANTIATE_CLASS(BoxUpsampleLayer);
 REGISTER_LAYER_CLASS(BoxUpsample);
 

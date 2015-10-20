@@ -62,7 +62,7 @@ void LocallyConnectedLayer<Dtype>::Forward_cpu(
   Dtype* temp_data = temp->mutable_cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
   caffe_set(temp->count(), (Dtype) 0.0, temp_data);
-  
+
   for(int n=0; n<num; n++)
   {
     for(int c=0; c<outchannels; c++)
@@ -81,7 +81,7 @@ void LocallyConnectedLayer<Dtype>::Forward_cpu(
         float wYh = Y-Yl;
         Yl = max(Yl, 0.0f);
         Yh = min(Yh, g-1.0f);
- 
+
         for(int x=0; x<width; x++)
         {
            float X = (static_cast<float>(x)+0.5)*g/w - 0.5;
@@ -117,7 +117,7 @@ void LocallyConnectedLayer<Dtype>::Forward_cpu(
 
            //Save the values
            top_curr[y*width+x]=val;
-            
+
         }
       }
     }
@@ -135,8 +135,8 @@ void LocallyConnectedLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     const int width = bottom[0]->width();
     const int grid_size = this->layer_param_.local_layer_param().grid_size();
     const int channels2=grid_size*grid_size;
-    const int outchannels = channels/channels2;   
- 
+    const int outchannels = channels/channels2;
+
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
     const Dtype* bottom_data = bottom[0]->cpu_data();
     const Dtype* temp_data = temp->cpu_data();
@@ -155,7 +155,7 @@ void LocallyConnectedLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
         int c_out = c/channels2;
 
         const Dtype* top_diff_curr = top_diff + n*outchannels*width*height+c_out*width*height;
-        
+
         for(int y=0;y<height;y++)
         {
           for(int x=0;x<width;x++)
@@ -165,17 +165,22 @@ void LocallyConnectedLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
              Dtype p = sigmoid(*bottom_curr);
              bottom_curr++;
              *bottom_diff_curr = alpha*p*(1-p)* (*top_diff_curr);
-             top_diff_curr++; 
+             top_diff_curr++;
              bottom_diff_curr++;
           }
         }
       }
 
-    } 
+    }
     //LOG(INFO)<<"maxdiff: "<<maxdiff;
 
   }
 }
+#ifdef CPU_ONLY
+STUB_GPU(LocallyConnectedLayer);
+#endif
+
+
 
 INSTANTIATE_CLASS(LocallyConnectedLayer);
 

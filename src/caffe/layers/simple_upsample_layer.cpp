@@ -48,7 +48,7 @@ void SimpleUpsampleLayer<Dtype>::Forward_cpu(
         for(int c=0; c<channels; c++)
         {
             const Dtype* bottom_curr=bottom_data+n*channels*bottomtotal+c*bottomtotal;
-            Dtype* top_curr=top_data+n*channels*total+c*total; 
+            Dtype* top_curr=top_data+n*channels*total+c*total;
             for(int y=0; y<top_height; y++)
             {
                 float Y = (static_cast<float>(y)+0.5)*H/h - 0.5;
@@ -72,11 +72,11 @@ void SimpleUpsampleLayer<Dtype>::Forward_cpu(
                    val += static_cast<Dtype>(wXl*wYh)*bottom_curr[static_cast<int>(Yh)*width + static_cast<int>(Xl)];
                    val += static_cast<Dtype>(wXh*wYl)*bottom_curr[static_cast<int>(Yl)*width + static_cast<int>(Xh)];
                    val += static_cast<Dtype>(wXh*wYh)*bottom_curr[static_cast<int>(Yh)*width + static_cast<int>(Xh)];
-                   
+
                    *top_curr=val;
-                   top_curr++;  
-                }    
-            }    
+                   top_curr++;
+                }
+            }
         }
     }
 
@@ -111,7 +111,7 @@ void SimpleUpsampleLayer<Dtype>::Backward_cpu(
         for(int c=0; c<channels; c++)
         {
             Dtype* bottom_curr=bottom_diff+n*channels*bottomtotal+c*bottomtotal;
-            const Dtype* top_curr=top_diff+n*channels*total+c*total; 
+            const Dtype* top_curr=top_diff+n*channels*total+c*total;
             for(int Y=0; Y<height; Y++)
             {
               float ycenter = (static_cast<float>(Y)+0.5)*h/H -0.5;
@@ -136,18 +136,23 @@ void SimpleUpsampleLayer<Dtype>::Backward_cpu(
                      //special case boundary
                      wx = ((X==0) && x<xcenter)?1.0:wx;
                      wx = ((X==width-1) && x>xcenter)?1.0:wx;
-                     val += static_cast<Dtype>(wx*wy)*top_curr[y*top_width+x]; 
+                     val += static_cast<Dtype>(wx*wy)*top_curr[y*top_width+x];
                   }
                 }
                 *bottom_curr = val;
                 bottom_curr++;
               }
-            }    
+            }
         }
     }
 
 
 }
+#ifdef CPU_ONLY
+STUB_GPU(SimpleUpsampleLayer);
+#endif
+
+
 INSTANTIATE_CLASS(SimpleUpsampleLayer);
 REGISTER_LAYER_CLASS(SimpleUpsample);
 

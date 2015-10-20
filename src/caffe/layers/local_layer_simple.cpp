@@ -29,8 +29,8 @@ void LocallyConnectedWithLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>
   CHECK_EQ(grid_size*grid_size*outchannels, bottom[0]->channels())<<" bottom's channels must be grid_size^2";
   temp.reset(new Blob<Dtype>(1,1,1,1));
   temp2.reset(new Blob<Dtype>(1,1,1,1));
-  temp3.reset(new Blob<Dtype>(1,1,1,1)); 
-  temp4.reset(new Blob<Dtype>(1,1,1,1)); 
+  temp3.reset(new Blob<Dtype>(1,1,1,1));
+  temp4.reset(new Blob<Dtype>(1,1,1,1));
 }
 
 template <typename Dtype>
@@ -72,7 +72,7 @@ void LocallyConnectedWithLossLayer<Dtype>::Forward_cpu(
   Dtype* temp_data = temp->mutable_cpu_data();
   Dtype* temp2_data = temp2->mutable_cpu_data();
   caffe_set(temp->count(), (Dtype) 0.0, temp_data);
-  caffe_set(temp2->count(), (Dtype) 0.0, temp2_data); 
+  caffe_set(temp2->count(), (Dtype) 0.0, temp2_data);
   const Dtype neg_loss_wt = this->layer_param_.local_layer_param().neg_loss_wt();
   const Dtype pos_loss_wt = this->layer_param_.local_layer_param().pos_loss_wt();
   const Dtype* instance_wt = bottom[2]->cpu_data();
@@ -87,7 +87,7 @@ void LocallyConnectedWithLossLayer<Dtype>::Forward_cpu(
       Dtype* temp_curr = temp_data + n*channels*width*height
                                   +c*channels2*width*height;
       const Dtype* label_curr = label_data + n*outchannels*width*height+c*width*height;
-      
+
       Dtype* temp2_curr = temp2_data + n*outchannels*width*height+c*width*height;
       for(int y=0; y<height; y++)
       {
@@ -98,7 +98,7 @@ void LocallyConnectedWithLossLayer<Dtype>::Forward_cpu(
         float wYh = Y-Yl;
         Yl = max(Yl, 0.0f);
         Yh = min(Yh, g-1.0f);
- 
+
         for(int x=0; x<width; x++)
         {
            float X = (static_cast<float>(x)+0.5)*g/w - 0.5;
@@ -140,7 +140,7 @@ void LocallyConnectedWithLossLayer<Dtype>::Forward_cpu(
            //add to loss
            if(label==-1) {continue;}
            loss -= this_wt*(label>0.5?pos_loss_wt*log(max(val, (Dtype)FLT_MIN)):neg_loss_wt*log(max(1-val, (Dtype)FLT_MIN)));
-            
+
         }
       }
     }
@@ -161,7 +161,7 @@ void LocallyConnectedWithLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>
     const int grid_size = this->layer_param_.local_layer_param().grid_size();
     const int outchannels = bottom[1]->channels();
     const int channels2=grid_size*grid_size;
-    
+
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
     const Dtype* bottom_data = bottom[0]->cpu_data();
     const Dtype* label_data = bottom[1]->cpu_data();
@@ -184,7 +184,7 @@ void LocallyConnectedWithLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>
         const Dtype* label_curr = label_data + n*outchannels*width*height+c_out*width*height;
 
         const Dtype* temp2_curr = temp2_data + n*outchannels*width*height+c_out*width*height;
-        
+
         for(int y=0;y<height;y++)
         {
           for(int x=0;x<width;x++)
@@ -212,14 +212,19 @@ void LocallyConnectedWithLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>
         }
       }
 
-    } 
+    }
     //LOG(INFO)<<"maxdiff: "<<maxdiff;
   const Dtype loss_weight = top[0]->cpu_diff()[0];
     caffe_scal(bottom[0]->count(), loss_weight, bottom_diff);
 
   }
-  
+
 }
+#ifdef CPU_ONLY
+STUB_GPU(LocallyConnectedWithLossLayer);
+#endif
+
+
 
 INSTANTIATE_CLASS(LocallyConnectedWithLossLayer);
 
